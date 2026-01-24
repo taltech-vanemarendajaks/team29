@@ -55,35 +55,18 @@ public class SalesService {
 
         private SaleItemResponseDto processSaleItem(SaleItemRequestDto item, UUID userId, Long organizationId,
                         String saleId, Long barStationId) {
-                Product product = productRepository.findById(item.productId())
-                                .orElseThrow(() -> new ResponseStatusException(
-                                                HttpStatus.NOT_FOUND, "Product not found: " + item.productId()));
+                Product product = getAndValidateProduct(item, organizationId);
+                Inventory inventory = getInventoryForProduct(product);
 
-                if (!product.getOrganizationId().equals(organizationId)) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.FORBIDDEN, "Product does not belong to your organization");
-                }
-
-                if (!product.isActive()) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.BAD_REQUEST, "Product is not active: " + product.getName());
-                }
-
-                Inventory inventory = Optional.ofNullable(product.getInventory())
-                                .orElseThrow(() -> new ResponseStatusException(
-                                                HttpStatus.NOT_FOUND,
-                                                "No inventory found for product: " + product.getName()));
-
-                // Check stock availability
                 BigDecimal oldQuantity = inventory.getQuantity();
-                BigDecimal newQuantity = calculateInventoryAfterSale(item, oldQuantity, product);
+                BigDecimal newQuantity = calculateQuantityAfterSale(item, oldQuantity, product);
 
-                // Calculate pricing
                 BigDecimal priceBeforeSale = calculatePriceBeforeSale(inventory, product);
                 BigDecimal totalPrice = priceBeforeSale.multiply(item.quantity());
                 BigDecimal newPrice = calculateNewPrice(product, priceBeforeSale);
 
                 inventory = applySaleToInventory(inventory, newQuantity, newPrice);
+
                 createSaleTransaction(inventory, item.quantity(),
                                 oldQuantity, newQuantity, priceBeforeSale, newPrice,
                                 saleId, userId, barStationId);
@@ -96,7 +79,32 @@ public class SalesService {
                                 totalPrice);
         }
 
-        private static BigDecimal calculateInventoryAfterSale(SaleItemRequestDto item, BigDecimal oldQuantity, Product product) {
+        private Inventory getInventoryForProduct(Product product) {
+            return Optional.ofNullable(product.getInventory())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "No inventory found for product: " + product.getName()));
+        }
+
+        private Product getAndValidateProduct(SaleItemRequestDto item, Long organizationId) {
+                Product product = productRepository.findById(item.productId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Product not found: " + item.productId()));
+
+                if (!product.getOrganizationId().equals(organizationId)) {
+                        throw new ResponseStatusException(
+                                HttpStatus.FORBIDDEN, "Product does not belong to your organization");
+                }
+
+                if (!product.isActive()) {
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST, "Product is not active: " + product.getName());
+                }
+
+                return product;
+        }
+
+        private static BigDecimal calculateQuantityAfterSale(SaleItemRequestDto item, BigDecimal oldQuantity, Product product) {
                 BigDecimal newQuantity = oldQuantity.subtract(item.quantity());
 
                 if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
