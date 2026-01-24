@@ -134,19 +134,21 @@ public class SalesService {
                         BigDecimal quantityBefore, BigDecimal quantityAfter,
                         BigDecimal priceBefore, BigDecimal priceAfter,
                         String saleId, UUID userId, Long barStationId) {
-                InventoryTransaction transaction = new InventoryTransaction();
-                transaction.setInventory(inventory);
-                transaction.setTransactionType("SALE");
-                transaction.setQuantityChange(quantity.negate()); // Negative for sales
-                transaction.setQuantityBefore(quantityBefore);
-                transaction.setQuantityAfter(quantityAfter);
-                transaction.setPriceBefore(priceBefore);
-                transaction.setPriceAfter(priceAfter);
-                transaction.setReferenceId(saleId);
-                transaction.setNotes("POS Sale");
-                transaction.setCreatedBy(userId);
-                transaction.setBarStationId(barStationId);
-                transaction.setCreatedAt(OffsetDateTime.now());
+
+                InventoryTransaction transaction = InventoryTransaction.builder()
+                        .inventory(inventory)
+                        .transactionType("SALE")
+                        .quantityChange(quantity.negate())
+                        .quantityBefore(quantityBefore)
+                        .quantityAfter(quantityAfter)
+                        .priceBefore(priceBefore)
+                        .priceAfter(priceAfter)
+                        .referenceId(saleId)
+                        .notes("POS Sale")
+                        .createdBy(userId)
+                        .barStationId(barStationId)
+                        .createdAt(OffsetDateTime.now())
+                        .build();
                 inventoryTransactionRepository.save(transaction);
         }
 }
