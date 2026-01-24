@@ -109,15 +109,7 @@ public class SalesService {
                         }
                 }
 
-
-                // Update inventory
-                inventory.setQuantity(newQuantity);
-                inventory.setUpdatedAt(OffsetDateTime.now());
-                inventory.setAdjustedPrice(priceAfterSale);
-
-                inventory = inventoryRepository.save(inventory);
-
-                // Create sale transaction
+                inventory = applySaleToInventory(inventory, newQuantity, priceAfterSale);
                 createSaleTransaction(inventory, item.quantity(),
                                 oldQuantity, newQuantity, priceBeforeSale, priceAfterSale,
                                 saleId, userId, barStationId);
@@ -128,6 +120,16 @@ public class SalesService {
                                 item.quantity(),
                                 priceBeforeSale,
                                 totalPrice);
+        }
+
+        private Inventory applySaleToInventory(Inventory inventory,
+                                               BigDecimal newQuantity,
+                                               BigDecimal priceAfterSale) {
+                inventory.setQuantity(newQuantity);
+                inventory.setAdjustedPrice(priceAfterSale);
+                inventory.setUpdatedAt(OffsetDateTime.now());
+
+                return inventoryRepository.save(inventory);
         }
 
         private void createSaleTransaction(Inventory inventory, BigDecimal quantity,
