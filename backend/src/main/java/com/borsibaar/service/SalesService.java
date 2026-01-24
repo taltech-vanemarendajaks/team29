@@ -55,7 +55,6 @@ public class SalesService {
 
         private SaleItemResponseDto processSaleItem(SaleItemRequestDto item, UUID userId, Long organizationId,
                         String saleId, Long barStationId) {
-                // Verify product exists and belongs to organization
                 Product product = productRepository.findById(item.productId())
                                 .orElseThrow(() -> new ResponseStatusException(
                                                 HttpStatus.NOT_FOUND, "Product not found: " + item.productId()));
@@ -70,14 +69,6 @@ public class SalesService {
                                         HttpStatus.BAD_REQUEST, "Product is not active: " + product.getName());
                 }
 
-                // Get inventory for this product
-                /*
-                 * Inventory inventory = inventoryRepository
-                 * .findByOrganizationIdAndProductId(organizationId, item.productId())
-                 * .orElseThrow(() -> new ResponseStatusException(
-                 * HttpStatus.NOT_FOUND, "No inventory found for product: " +
-                 * product.getName()));
-                 */
                 Inventory inventory = Optional.ofNullable(product.getInventory())
                                 .orElseThrow(() -> new ResponseStatusException(
                                                 HttpStatus.NOT_FOUND,
@@ -85,6 +76,27 @@ public class SalesService {
 
                 // Check stock availability
                 BigDecimal oldQuantity = inventory.getQuantity();
+                BigDecimal newQuantity = calculateInventoryAfterSale(item, oldQuantity, product);
+
+                // Calculate pricing
+                BigDecimal priceBeforeSale = calculatePriceBeforeSale(inventory, product);
+                BigDecimal totalPrice = priceBeforeSale.multiply(item.quantity());
+                BigDecimal newPrice = calculateNewPrice(product, priceBeforeSale);
+
+                inventory = applySaleToInventory(inventory, newQuantity, newPrice);
+                createSaleTransaction(inventory, item.quantity(),
+                                oldQuantity, newQuantity, priceBeforeSale, newPrice,
+                                saleId, userId, barStationId);
+
+                return new SaleItemResponseDto(
+                                item.productId(),
+                                product.getName(),
+                                item.quantity(),
+                                priceBeforeSale,
+                                totalPrice);
+        }
+
+        private static BigDecimal calculateInventoryAfterSale(SaleItemRequestDto item, BigDecimal oldQuantity, Product product) {
                 BigDecimal newQuantity = oldQuantity.subtract(item.quantity());
 
                 if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
@@ -94,32 +106,26 @@ public class SalesService {
                                                         ". Available: " + oldQuantity + ", Requested: "
                                                         + item.quantity());
                 }
+                return newQuantity;
+        }
 
-                // Calculate pricing
-                BigDecimal priceBeforeSale = Optional.ofNullable(inventory.getAdjustedPrice())
-                                .orElse(product.getBasePrice());
-                BigDecimal totalPrice = priceBeforeSale.multiply(item.quantity());
+        private BigDecimal calculatePriceBeforeSale(Inventory inventory, Product product) {
+                return Optional.ofNullable(inventory.getAdjustedPrice())
+                        .orElse(product.getBasePrice());
+        }
 
-                BigDecimal priceAfterSale = priceBeforeSale;
+        private BigDecimal calculateNewPrice(Product product, BigDecimal priceBeforeSale) {
                 Category category = product.getCategory();
-                if (category != null && category.isDynamicPricing()) {
-                        priceAfterSale = priceBeforeSale.add(product.getOrganization().getPriceIncreaseStep());
-                        if (product.getMaxPrice() != null && priceAfterSale.compareTo(product.getMaxPrice()) > 0) {
-                                priceAfterSale = product.getMaxPrice();
-                        }
+                if (category == null || !category.isDynamicPricing()) {
+                        return priceBeforeSale;
                 }
 
-                inventory = applySaleToInventory(inventory, newQuantity, priceAfterSale);
-                createSaleTransaction(inventory, item.quantity(),
-                                oldQuantity, newQuantity, priceBeforeSale, priceAfterSale,
-                                saleId, userId, barStationId);
+                BigDecimal newPrice = priceBeforeSale.add(product.getOrganization().getPriceIncreaseStep());
+                if (product.getMaxPrice() != null && newPrice.compareTo(product.getMaxPrice()) > 0) {
+                        newPrice = product.getMaxPrice();
+                }
 
-                return new SaleItemResponseDto(
-                                item.productId(),
-                                product.getName(),
-                                item.quantity(),
-                                priceBeforeSale,
-                                totalPrice);
+                return newPrice;
         }
 
         private Inventory applySaleToInventory(Inventory inventory,
