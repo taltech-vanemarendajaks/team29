@@ -25,6 +25,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SalesService {
 
+        public static final String SALE = "SALE";
+        public static final String POS_SALE = "POS Sale";
         private final InventoryRepository inventoryRepository;
         private final InventoryTransactionRepository inventoryTransactionRepository;
         private final ProductRepository productRepository;
@@ -153,14 +155,14 @@ public class SalesService {
 
                 InventoryTransaction transaction = InventoryTransaction.builder()
                         .inventory(inventory)
-                        .transactionType("SALE")
+                        .transactionType(SALE)
                         .quantityChange(quantity.negate())
                         .quantityBefore(quantityBefore)
                         .quantityAfter(quantityAfter)
                         .priceBefore(priceBefore)
                         .priceAfter(priceAfter)
                         .referenceId(saleId)
-                        .notes("POS Sale")
+                        .notes(POS_SALE)
                         .createdBy(userId)
                         .barStationId(barStationId)
                         .createdAt(OffsetDateTime.now())
