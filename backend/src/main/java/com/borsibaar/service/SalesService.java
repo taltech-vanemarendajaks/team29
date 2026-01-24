@@ -5,6 +5,7 @@ import com.borsibaar.entity.Category;
 import com.borsibaar.entity.Inventory;
 import com.borsibaar.entity.InventoryTransaction;
 import com.borsibaar.entity.Product;
+import com.borsibaar.form.enums.TransactionType;
 import com.borsibaar.repository.InventoryRepository;
 import com.borsibaar.repository.InventoryTransactionRepository;
 import com.borsibaar.repository.ProductRepository;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SalesService {
-
+        public static final String SALE = "SALE-";
         private final InventoryRepository inventoryRepository;
         private final InventoryTransactionRepository inventoryTransactionRepository;
         private final ProductRepository productRepository;
@@ -32,25 +33,23 @@ public class SalesService {
         @Transactional
         public SaleResponseDto processSale(SaleRequestDto request, UUID userId, Long organizationId) {
                 // Generate unique sale reference ID
-                String saleId = "SALE-" + System.currentTimeMillis();
-
-                List<SaleItemResponseDto> saleItems = new ArrayList<>();
-                BigDecimal totalAmount = BigDecimal.ZERO;
+                String saleId = SALE + System.currentTimeMillis();
 
                 // Process each item in the sale
-                for (SaleItemRequestDto item : request.items()) {
-                        SaleItemResponseDto saleItem = processSaleItem(item, userId, organizationId, saleId,
-                                        request.barStationId());
-                        saleItems.add(saleItem);
-                        totalAmount = totalAmount.add(saleItem.totalPrice());
-                }
+                List<SaleItemResponseDto> saleItems = request.items().stream()
+                        .map(item ->
+                                processSaleItem(item, userId, organizationId, saleId, request.barStationId()))
+                        .toList();
 
-                return new SaleResponseDto(
-                                saleId,
-                                saleItems,
-                                totalAmount,
-                                request.notes(),
-                                OffsetDateTime.now());
+                BigDecimal totalAmount = saleItems.stream()
+                        .map(SaleItemResponseDto::totalPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                return SaleResponseDto.create(
+                        saleId,
+                        saleItems,
+                        totalAmount,
+                        request.notes());
         }
 
         private SaleItemResponseDto processSaleItem(SaleItemRequestDto item, UUID userId, Long organizationId,
@@ -134,19 +133,21 @@ public class SalesService {
                         BigDecimal quantityBefore, BigDecimal quantityAfter,
                         BigDecimal priceBefore, BigDecimal priceAfter,
                         String saleId, UUID userId, Long barStationId) {
-                InventoryTransaction transaction = new InventoryTransaction();
-                transaction.setInventory(inventory);
-                transaction.setTransactionType("SALE");
-                transaction.setQuantityChange(quantity.negate()); // Negative for sales
-                transaction.setQuantityBefore(quantityBefore);
-                transaction.setQuantityAfter(quantityAfter);
-                transaction.setPriceBefore(priceBefore);
-                transaction.setPriceAfter(priceAfter);
-                transaction.setReferenceId(saleId);
-                transaction.setNotes("POS Sale");
-                transaction.setCreatedBy(userId);
-                transaction.setBarStationId(barStationId);
-                transaction.setCreatedAt(OffsetDateTime.now());
+                InventoryTransaction transaction = InventoryTransaction.builder()
+                        .inventory(inventory)
+                        .transactionType(TransactionType.SALE.name())
+                        .quantityChange(quantity.negate())
+                        .quantityBefore(quantityBefore)
+                        .quantityAfter(quantityAfter)
+                        .priceBefore(priceBefore)
+                        .priceAfter(priceAfter)
+                        .referenceId(saleId)
+                        .notes("POS Sale")
+                        .createdBy(userId)
+                        .barStationId(barStationId)
+                        .createdAt(OffsetDateTime.now())
+                        .build();
+
                 inventoryTransactionRepository.save(transaction);
         }
 }
