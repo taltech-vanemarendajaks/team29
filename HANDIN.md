@@ -1,4 +1,4 @@
-# Homework: Team Workflow with Git & GitHub
+# Homework 01: Team Workflow with Git & GitHub
 
 ## Pull requests
 
@@ -6,7 +6,8 @@
 |-----------------------------------------------------------|----------|----------|
 | https://github.com/taltech-vanemarendajaks/team29/pull/7  | Karme    | Veronika |
 | https://github.com/taltech-vanemarendajaks/team29/pull/9  | Veronika | Karme    |
-| https://github.com/taltech-vanemarendajaks/team29/pull/10 | Karme    |          |
+| https://github.com/taltech-vanemarendajaks/team29/pull/10 | Karme    | Veronika |
+| https://github.com/taltech-vanemarendajaks/team29/pull/12 | Veronika | Karme    |
 
 ## Merge conflict
 
