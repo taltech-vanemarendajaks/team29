@@ -19,3 +19,6 @@ We changed the same SalesService class (pull requests 9 and 10) while refactorin
 ### How conflict was resolved
 - Constant with value "SALE-" was accepted and for the transactionType an enum was used instead
 - Changes from pull request 9 was accepted (the usage of transactionType enam was included there)
+
+### Final cleanup 
+-  Repository hygiene has been performed
