@@ -7,7 +7,8 @@ import lombok.Getter;
 public enum TransactionType {
     SALE("SALE"),
     INITIAL("INITIAL"),
-    ADJUSTMENT("ADJUSTMENT");
+    ADJUSTMENT("ADJUSTMENT"),
+    PURCHASE("PURCHASE");
 
     @Getter
     private final String type;
