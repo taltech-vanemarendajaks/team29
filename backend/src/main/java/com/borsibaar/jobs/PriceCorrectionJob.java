@@ -3,6 +3,7 @@ package com.borsibaar.jobs;
 import com.borsibaar.entity.Inventory;
 import com.borsibaar.entity.InventoryTransaction;
 import com.borsibaar.entity.Product;
+import com.borsibaar.form.enums.TransactionType;
 import com.borsibaar.repository.*;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -71,7 +72,7 @@ public class PriceCorrectionJob {
             // Create price reduction transaction
             InventoryTransaction transaction = new InventoryTransaction();
             transaction.setInventory(inventory);
-            transaction.setTransactionType("ADJUSTMENT");
+            transaction.setTransactionType(TransactionType.ADJUSTMENT.name());
             transaction.setQuantityChange(BigDecimal.ZERO);
             transaction.setQuantityBefore(inventory.getQuantity());
             transaction.setQuantityAfter(inventory.getQuantity());

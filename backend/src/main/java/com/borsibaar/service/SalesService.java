@@ -5,6 +5,7 @@ import com.borsibaar.entity.Category;
 import com.borsibaar.entity.Inventory;
 import com.borsibaar.entity.InventoryTransaction;
 import com.borsibaar.entity.Product;
+import com.borsibaar.form.enums.TransactionType;
 import com.borsibaar.repository.InventoryRepository;
 import com.borsibaar.repository.InventoryTransactionRepository;
 import com.borsibaar.repository.ProductRepository;
@@ -136,7 +137,7 @@ public class SalesService {
                         String saleId, UUID userId, Long barStationId) {
                 InventoryTransaction transaction = new InventoryTransaction();
                 transaction.setInventory(inventory);
-                transaction.setTransactionType("SALE");
+                transaction.setTransactionType(TransactionType.SALE.name());
                 transaction.setQuantityChange(quantity.negate()); // Negative for sales
                 transaction.setQuantityBefore(quantityBefore);
                 transaction.setQuantityAfter(quantityAfter);

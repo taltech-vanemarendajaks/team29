@@ -6,6 +6,7 @@ import com.borsibaar.entity.Category;
 import com.borsibaar.entity.Inventory;
 import com.borsibaar.entity.InventoryTransaction;
 import com.borsibaar.entity.Product;
+import com.borsibaar.form.enums.TransactionType;
 import com.borsibaar.mapper.ProductMapper;
 import com.borsibaar.repository.CategoryRepository;
 import com.borsibaar.repository.InventoryRepository;
@@ -82,7 +83,7 @@ public class ProductService {
 
         InventoryTransaction transaction = new InventoryTransaction();
         transaction.setInventory(savedInventory);
-        transaction.setTransactionType("INITIAL");
+        transaction.setTransactionType(TransactionType.INITIAL.name());
         transaction.setQuantityChange(BigDecimal.ZERO);
         transaction.setQuantityBefore(BigDecimal.ZERO);
         transaction.setQuantityAfter(BigDecimal.ZERO);
