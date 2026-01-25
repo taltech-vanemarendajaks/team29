@@ -6,6 +6,7 @@ import com.borsibaar.entity.Inventory;
 import com.borsibaar.entity.InventoryTransaction;
 import com.borsibaar.entity.Product;
 import com.borsibaar.entity.User;
+import com.borsibaar.form.enums.TransactionType;
 import com.borsibaar.mapper.InventoryMapper;
 import com.borsibaar.repository.BarStationRepository;
 import com.borsibaar.repository.InventoryRepository;
@@ -147,7 +148,7 @@ public class InventoryService {
                 .orElse(product.getBasePrice());
 
         // Create transaction record
-        createTransaction(inventory, "PURCHASE", request.quantity(),
+        createTransaction(inventory, TransactionType.PURCHASE.name(), request.quantity(),
                 oldQuantity, newQuantity, currentPrice, currentPrice, null, request.notes(), userId);
 
         InventoryResponseDto base = inventoryMapper.toResponse(inventory);

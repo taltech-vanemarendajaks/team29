@@ -5,7 +5,10 @@ import lombok.Getter;
 
 @AllArgsConstructor
 public enum TransactionType {
-    SALE("SALE");
+    SALE("SALE"),
+    INITIAL("INITIAL"),
+    ADJUSTMENT("ADJUSTMENT"),
+    PURCHASE("PURCHASE");
 
     @Getter
     private final String type;
