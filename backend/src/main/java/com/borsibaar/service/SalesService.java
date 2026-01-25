@@ -25,7 +25,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SalesService {
-
+        public static final String SALE = "SALE-";
+        public static final String POS_SALE = "POS Sale";
         private final InventoryRepository inventoryRepository;
         private final InventoryTransactionRepository inventoryTransactionRepository;
         private final ProductRepository productRepository;
@@ -33,94 +34,41 @@ public class SalesService {
         @Transactional
         public SaleResponseDto processSale(SaleRequestDto request, UUID userId, Long organizationId) {
                 // Generate unique sale reference ID
-                String saleId = "SALE-" + System.currentTimeMillis();
-
-                List<SaleItemResponseDto> saleItems = new ArrayList<>();
-                BigDecimal totalAmount = BigDecimal.ZERO;
+                String saleId = SALE + System.currentTimeMillis();
 
                 // Process each item in the sale
-                for (SaleItemRequestDto item : request.items()) {
-                        SaleItemResponseDto saleItem = processSaleItem(item, userId, organizationId, saleId,
-                                        request.barStationId());
-                        saleItems.add(saleItem);
-                        totalAmount = totalAmount.add(saleItem.totalPrice());
-                }
+                List<SaleItemResponseDto> saleItems = request.items().stream()
+                        .map(item ->
+                                processSaleItem(item, userId, organizationId, saleId, request.barStationId()))
+                        .toList();
 
-                return new SaleResponseDto(
-                                saleId,
-                                saleItems,
-                                totalAmount,
-                                request.notes(),
-                                OffsetDateTime.now());
+                BigDecimal totalAmount = saleItems.stream()
+                        .map(SaleItemResponseDto::totalPrice)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                return SaleResponseDto.create(
+                        saleId,
+                        saleItems,
+                        totalAmount,
+                        request.notes());
         }
 
         private SaleItemResponseDto processSaleItem(SaleItemRequestDto item, UUID userId, Long organizationId,
                         String saleId, Long barStationId) {
-                // Verify product exists and belongs to organization
-                Product product = productRepository.findById(item.productId())
-                                .orElseThrow(() -> new ResponseStatusException(
-                                                HttpStatus.NOT_FOUND, "Product not found: " + item.productId()));
+                Product product = getAndValidateProduct(item, organizationId);
+                Inventory inventory = getInventoryForProduct(product);
 
-                if (!product.getOrganizationId().equals(organizationId)) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.FORBIDDEN, "Product does not belong to your organization");
-                }
-
-                if (!product.isActive()) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.BAD_REQUEST, "Product is not active: " + product.getName());
-                }
-
-                // Get inventory for this product
-                /*
-                 * Inventory inventory = inventoryRepository
-                 * .findByOrganizationIdAndProductId(organizationId, item.productId())
-                 * .orElseThrow(() -> new ResponseStatusException(
-                 * HttpStatus.NOT_FOUND, "No inventory found for product: " +
-                 * product.getName()));
-                 */
-                Inventory inventory = Optional.ofNullable(product.getInventory())
-                                .orElseThrow(() -> new ResponseStatusException(
-                                                HttpStatus.NOT_FOUND,
-                                                "No inventory found for product: " + product.getName()));
-
-                // Check stock availability
                 BigDecimal oldQuantity = inventory.getQuantity();
-                BigDecimal newQuantity = oldQuantity.subtract(item.quantity());
+                BigDecimal newQuantity = calculateQuantityAfterSale(item, oldQuantity, product);
 
-                if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
-                        throw new ResponseStatusException(
-                                        HttpStatus.BAD_REQUEST,
-                                        "Insufficient stock for " + product.getName() +
-                                                        ". Available: " + oldQuantity + ", Requested: "
-                                                        + item.quantity());
-                }
-
-                // Calculate pricing
-                BigDecimal priceBeforeSale = Optional.ofNullable(inventory.getAdjustedPrice())
-                                .orElse(product.getBasePrice());
+                BigDecimal priceBeforeSale = calculatePriceBeforeSale(inventory, product);
                 BigDecimal totalPrice = priceBeforeSale.multiply(item.quantity());
+                BigDecimal newPrice = calculateNewPrice(product, priceBeforeSale);
 
-                BigDecimal priceAfterSale = priceBeforeSale;
-                Category category = product.getCategory();
-                if (category != null && category.isDynamicPricing()) {
-                        priceAfterSale = priceBeforeSale.add(product.getOrganization().getPriceIncreaseStep());
-                        if (product.getMaxPrice() != null && priceAfterSale.compareTo(product.getMaxPrice()) > 0) {
-                                priceAfterSale = product.getMaxPrice();
-                        }
-                }
+                inventory = applySaleToInventory(inventory, newQuantity, newPrice);
 
-
-                // Update inventory
-                inventory.setQuantity(newQuantity);
-                inventory.setUpdatedAt(OffsetDateTime.now());
-                inventory.setAdjustedPrice(priceAfterSale);
-
-                inventory = inventoryRepository.save(inventory);
-
-                // Create sale transaction
                 createSaleTransaction(inventory, item.quantity(),
-                                oldQuantity, newQuantity, priceBeforeSale, priceAfterSale,
+                                oldQuantity, newQuantity, priceBeforeSale, newPrice,
                                 saleId, userId, barStationId);
 
                 return new SaleItemResponseDto(
@@ -131,23 +79,92 @@ public class SalesService {
                                 totalPrice);
         }
 
+        private Inventory getInventoryForProduct(Product product) {
+            return Optional.ofNullable(product.getInventory())
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "No inventory found for product: " + product.getName()));
+        }
+
+        private Product getAndValidateProduct(SaleItemRequestDto item, Long organizationId) {
+                Product product = productRepository.findById(item.productId())
+                        .orElseThrow(() -> new ResponseStatusException(
+                                HttpStatus.NOT_FOUND, "Product not found: " + item.productId()));
+
+                if (!product.getOrganizationId().equals(organizationId)) {
+                        throw new ResponseStatusException(
+                                HttpStatus.FORBIDDEN, "Product does not belong to your organization");
+                }
+
+                if (!product.isActive()) {
+                        throw new ResponseStatusException(
+                                HttpStatus.BAD_REQUEST, "Product is not active: " + product.getName());
+                }
+
+                return product;
+        }
+
+        private static BigDecimal calculateQuantityAfterSale(SaleItemRequestDto item, BigDecimal oldQuantity, Product product) {
+                BigDecimal newQuantity = oldQuantity.subtract(item.quantity());
+
+                if (newQuantity.compareTo(BigDecimal.ZERO) < 0) {
+                        throw new ResponseStatusException(
+                                        HttpStatus.BAD_REQUEST,
+                                        "Insufficient stock for " + product.getName() +
+                                                        ". Available: " + oldQuantity + ", Requested: "
+                                                        + item.quantity());
+                }
+                return newQuantity;
+        }
+
+        private BigDecimal calculatePriceBeforeSale(Inventory inventory, Product product) {
+                return Optional.ofNullable(inventory.getAdjustedPrice())
+                        .orElse(product.getBasePrice());
+        }
+
+        private BigDecimal calculateNewPrice(Product product, BigDecimal priceBeforeSale) {
+                Category category = product.getCategory();
+                if (category == null || !category.isDynamicPricing()) {
+                        return priceBeforeSale;
+                }
+
+                BigDecimal newPrice = priceBeforeSale.add(product.getOrganization().getPriceIncreaseStep());
+                if (product.getMaxPrice() != null && newPrice.compareTo(product.getMaxPrice()) > 0) {
+                        newPrice = product.getMaxPrice();
+                }
+
+                return newPrice;
+        }
+
+        private Inventory applySaleToInventory(Inventory inventory,
+                                               BigDecimal newQuantity,
+                                               BigDecimal priceAfterSale) {
+                inventory.setQuantity(newQuantity);
+                inventory.setAdjustedPrice(priceAfterSale);
+                inventory.setUpdatedAt(OffsetDateTime.now());
+
+                return inventoryRepository.save(inventory);
+        }
+
         private void createSaleTransaction(Inventory inventory, BigDecimal quantity,
                         BigDecimal quantityBefore, BigDecimal quantityAfter,
                         BigDecimal priceBefore, BigDecimal priceAfter,
                         String saleId, UUID userId, Long barStationId) {
-                InventoryTransaction transaction = new InventoryTransaction();
-                transaction.setInventory(inventory);
-                transaction.setTransactionType(TransactionType.SALE.name());
-                transaction.setQuantityChange(quantity.negate()); // Negative for sales
-                transaction.setQuantityBefore(quantityBefore);
-                transaction.setQuantityAfter(quantityAfter);
-                transaction.setPriceBefore(priceBefore);
-                transaction.setPriceAfter(priceAfter);
-                transaction.setReferenceId(saleId);
-                transaction.setNotes("POS Sale");
-                transaction.setCreatedBy(userId);
-                transaction.setBarStationId(barStationId);
-                transaction.setCreatedAt(OffsetDateTime.now());
+                InventoryTransaction transaction = InventoryTransaction.builder()
+                        .inventory(inventory)
+                        .transactionType(TransactionType.SALE.name())
+                        .quantityChange(quantity.negate())
+                        .quantityBefore(quantityBefore)
+                        .quantityAfter(quantityAfter)
+                        .priceBefore(priceBefore)
+                        .priceAfter(priceAfter)
+                        .referenceId(saleId)
+                        .notes(POS_SALE)
+                        .createdBy(userId)
+                        .barStationId(barStationId)
+                        .createdAt(OffsetDateTime.now())
+                        .build();
+
                 inventoryTransactionRepository.save(transaction);
         }
 }
