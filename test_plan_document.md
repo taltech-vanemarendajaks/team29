@@ -1,13 +1,7 @@
 ---
 name: Test Plan Document
-overview: Comprehensive test plan document для приложения Borsibaar, включающий стратегию тестирования, уровни тестов, scope, подходы, окружение, критерии, роли и deliverables для обеспечения качества при дальнейшей разработке.
-todos: []
-isProject: false
----
 
 # Test Plan Document - Borsibaar Application
-
-
 ---
 
 ## 1. Testing Objectives
@@ -17,7 +11,6 @@ isProject: false
 **Ensure Quality and Reliability:**
 
 - Verify that all functional requirements are met and working correctly
-- Ensure the application handles multi-tenancy correctly across organizations
 - Validate dynamic pricing mechanism accuracy and edge cases
 - Confirm secure authentication and authorization flows
 
@@ -44,7 +37,7 @@ isProject: false
 - **Backend:** Minimum 80% code coverage for services and controllers
 - **Frontend:** Minimum 70% code coverage for components and API routes
 - **Critical Paths:** 100% test coverage for sales, inventory, and authentication flows
-- **Zero Critical Bugs:** No P0/P1 bugs in production
+
 - **CI/CD:** All tests must pass before deployment
 
 ---
@@ -128,11 +121,6 @@ isProject: false
    - Test data flow between parent/child components
    - Test context providers (if implemented)
 
-**Tools:**
-
-- Backend: `@SpringBootTest`, TestRestTemplate, `@DataJpaTest`
-- Frontend: MSW (Mock Service Worker), React Testing Library
-
 ---
 
 ### 2.3 System Testing
@@ -169,6 +157,7 @@ isProject: false
    - Verify transaction audit trail
 
 4. **Admin Station Management:**
+
    ```
    Login as ADMIN → POS page → Create station → Assign users → Verify access
    ```
@@ -247,12 +236,6 @@ isProject: false
 - Verify sensitive data is not exposed in responses
 - Test for broken authentication/session management
 
-**Tools:**
-
-- OWASP ZAP or Burp Suite
-- Manual security testing
-- Dependency vulnerability scanning (Snyk, OWASP Dependency-Check)
-
 ---
 
 ## 3. Test Scope
@@ -296,24 +279,6 @@ isProject: false
 - ✅ Transaction integrity
 - ✅ Data validation (e.g., quantity >= 0)
 
-### 3.2 Out of Scope
-
-**For Current Release:**
-
-- ❌ Mobile native applications (iOS/Android)
-- ❌ Offline mode functionality
-- ❌ Payment gateway integration testing
-- ❌ Internationalization (i18n) testing
-- ❌ Email notification system (if not implemented)
-- ❌ Reporting/export features (if not implemented)
-
-**Future Considerations:**
-
-- Advanced analytics and dashboards
-- Third-party integrations (accounting software, etc.)
-- Real-time price updates via WebSockets
-- Advanced inventory forecasting
-
 ---
 
 ## 4. Test Approach
@@ -325,26 +290,6 @@ isProject: false
 - Write tests during development (TDD where applicable)
 - Run tests locally before committing code
 - Automated tests in CI/CD pipeline
-
-**Pyramid Model:**
-
-```
-        /\
-       /E2E\        ← Few (5-10 critical paths)
-      /------\
-     /        \
-    /Integration\   ← Medium (20-30 scenarios)
-   /------------\
-  /              \
- /  Unit Tests    \ ← Many (100+ tests)
-/------------------\
-```
-
-**Risk-Based Testing:**
-
-- Prioritize high-risk areas: sales processing, dynamic pricing, authentication
-- Focus on business-critical paths
-- Test edge cases and boundary conditions
 
 ### 4.2 Test Automation
 
@@ -366,11 +311,6 @@ jobs:
     - Run unit tests (npm test)
     - Run E2E tests (npm run test:e2e)
     - Generate coverage report
-
-  quality-gates:
-    - Coverage threshold: 80% backend, 70% frontend
-    - Zero critical/high vulnerabilities
-    - Linting passes
 ```
 
 **Test Execution Schedule:**
@@ -384,15 +324,9 @@ jobs:
 
 **Exploratory Testing:**
 
-- Conduct ad-hoc testing for new features
+- Testing for new features
 - UI/UX validation
 - Usability testing with real users
-
-**User Acceptance Testing (UAT):**
-
-- Stakeholder demos with real data
-- Verify business requirements
-- Collect feedback for iterations
 
 ---
 
@@ -403,14 +337,10 @@ jobs:
 **Local Setup:**
 
 - Docker Compose with PostgreSQL, Backend, Frontend
-- Isolated development databases per developer
-- Mock OAuth2 for local testing (if needed)
 
 **Configuration:**
 
 - `.env` files for local settings
-- H2 in-memory database for unit tests
-- Test data seeding via Liquibase
 
 ### 5.2 Testing Environments
 
@@ -439,21 +369,6 @@ jobs:
 - Purpose: Smoke tests post-deployment, monitoring
 - URL: `borsibaar.example.com`
 
-### 5.3 Test Data Management
-
-**Test Data Strategy:**
-
-- Use factory pattern for test object creation
-- Seed database with representative data for integration tests
-- Anonymized production data for performance tests (GDPR compliant)
-- Reset database state between test runs
-
-**Example Organizations for Testing:**
-
-- Organization 1: TalTech ITÜK (seeded in migrations)
-- Organization 2: Test Bar (for multi-tenancy testing)
-- Organization 3: Demo Restaurant (for UAT)
-
 ---
 
 ## 6. Entry and Exit Criteria
@@ -479,7 +394,6 @@ jobs:
 - ✅ All P1 (high) bugs resolved or accepted by stakeholders
 - ✅ Performance benchmarks met (response times < targets)
 - ✅ Security scan shows no high/critical vulnerabilities
-- ✅ UAT sign-off from stakeholders
 - ✅ Regression tests pass
 - ✅ Documentation is updated
 
@@ -538,98 +452,51 @@ jobs:
 - Prioritize bug fixes
 - Sign off on releases
 
-### 7.2 RACI Matrix
-
-| Activity            | QA Lead | QA Engineers | Developers | DevOps  | PO      |
-| ------------------- | ------- | ------------ | ---------- | ------- | ------- |
-| Test plan creation  | **R**   | C            | C          | C       | **A**   |
-| Unit test writing   | I       | C            | **R/A**    | I       | I       |
-| Integration testing | I       | **R/A**      | C          | C       | I       |
-| E2E testing         | C       | **R/A**      | I          | C       | I       |
-| CI/CD setup         | C       | I            | I          | **R/A** | I       |
-| Bug triage          | **R/A** | C            | C          | I       | C       |
-| UAT                 | I       | C            | I          | I       | **R/A** |
-| Release sign-off    | **R**   | I            | I          | I       | **A**   |
-
-**Legend:** R = Responsible, A = Accountable, C = Consulted, I = Informed
-
 ---
 
 ## 8. Risks and Assumptions
 
 ### 8.1 Risks
 
-**High Risk:**
+**High Priority:**
 
-1. **Frontend has Zero Test Coverage**
-   - Impact: HIGH (regressions undetected)
-   - Likelihood: MEDIUM
-   - Mitigation: Prioritize frontend testing framework setup, start with critical components
+1. **No Frontend Tests**
+   - Problem: Frontend has 0% test coverage
+   - Impact: Bugs not detected before production
+   - Solution: Add Jest + React Testing Library, start with critical components
 
-2. **Tests Skipped in CI/CD Pipeline**
-   - Impact: HIGH (bugs reach production)
-   - Likelihood: HIGH (currently happening)
-   - Mitigation: Remove `-DskipTests` flag, make tests mandatory gate
+2. **Tests Disabled in CI/CD**
+   - Problem: Tests currently skipped during deployment (`-DskipTests`)
+   - Impact: Broken code can reach production
+   - Solution: Enable tests in pipeline, make them required
 
-3. **Dynamic Pricing Algorithm Complexity**
-   - Impact: MEDIUM (incorrect pricing, revenue loss)
-   - Likelihood: MEDIUM
-   - Mitigation: Comprehensive unit tests with boundary cases, manual verification
+3. **Data Security Between Organizations**
+   - Problem: Multiple organizations share same database
+   - Impact: Data leak between organizations (critical security issue)
+   - Solution: Write tests to verify organization isolation
 
-4. **Multi-Tenancy Data Leaks**
-   - Impact: CRITICAL (data breach, legal issues)
-   - Likelihood: LOW
-   - Mitigation: Dedicated integration tests for tenant isolation, security audit
+**Medium Priority:**
 
-**Medium Risk:**
+4. **Google OAuth Dependency**
+   - Problem: If Google is down, users cannot login
+   - Impact: Application unusable
+   - Solution: Use mock OAuth for tests, monitor Google status
 
-5. **OAuth2 Provider Downtime (Google)**
-   - Impact: HIGH (users cannot login)
-   - Likelihood: LOW
-   - Mitigation: Mock OAuth in tests, monitor provider status, consider backup provider
-
-6. **Database Performance Under Load**
-   - Impact: MEDIUM (slow response times)
-   - Likelihood: MEDIUM
-   - Mitigation: Performance tests with realistic data volumes, query optimization
-
-7. **Test Data Management**
-   - Impact: LOW (flaky tests)
-   - Likelihood: MEDIUM
-   - Mitigation: Implement test data factories, database reset between tests
-
-**Low Risk:**
-
-8. **Browser Compatibility Issues**
-   - Impact: LOW (affects small user base)
-   - Likelihood: LOW
-   - Mitigation: Cross-browser testing in CI/CD
+5. **Dynamic Pricing Bugs**
+   - Problem: Complex price calculation logic
+   - Impact: Wrong prices, lost revenue
+   - Solution: Add comprehensive tests with edge cases
 
 ### 8.2 Assumptions
 
-**Environment:**
+**We assume that:**
 
-- ✅ Test environments will be available 24/7
-- ✅ Docker and Docker Compose are available on all developer machines
-- ✅ GitHub Actions has sufficient runner capacity
-
-**Resources:**
-
-- ✅ QA engineers have access to all environments
-- ✅ Sufficient time allocated for test writing and execution
-- ✅ Developers follow TDD or write tests alongside code
-
-**Technical:**
-
-- ✅ PostgreSQL behavior in production matches test environments
-- ✅ OAuth2 mock adequately simulates Google OAuth
-- ✅ H2 in-memory DB accurately represents PostgreSQL for unit tests
-
-**Process:**
-
-- ✅ Bug reports will be triaged within 24 hours
-- ✅ P0/P1 bugs will be fixed before release
-- ✅ Code reviews include test coverage verification
+- ✅ Test environments are available when needed
+- ✅ All developers have Docker installed
+- ✅ Team has time to write tests alongside features
+- ✅ Critical bugs (P0/P1) will be fixed quickly
+- ✅ PostgreSQL in production behaves like in tests
+- ✅ Mock OAuth is similar enough to real Google OAuth
 
 ---
 
@@ -639,15 +506,13 @@ jobs:
 
 **Planning Phase:**
 
-- ✅ Test Plan Document (this document)
+- ✅ Test Plan Document
 - ✅ Test Strategy Document
-- ✅ Risk Assessment Matrix
 
 **Design Phase:**
 
 - ✅ Test Case Specifications
 - ✅ Test Data Requirements
-- ✅ Traceability Matrix (Requirements → Test Cases)
 
 **Execution Phase:**
 
@@ -655,13 +520,11 @@ jobs:
 - ✅ Bug Reports (tracked in GitHub Issues)
 - ✅ Test Coverage Reports (JaCoCo for backend, Istanbul/NYC for frontend)
 - ✅ Performance Test Results (JMeter HTML reports)
-- ✅ Security Scan Reports (OWASP ZAP, Snyk)
 
 **Closure Phase:**
 
 - ✅ Test Summary Report
 - ✅ Defect Metrics Dashboard
-- ✅ Lessons Learned Document
 - ✅ Release Notes (QA section)
 
 ### 9.2 Metrics and Reporting
@@ -673,336 +536,4 @@ jobs:
 - Backend: Current ~80%, Target: 80%+ (services/controllers), 70%+ (repositories/mappers)
 - Frontend: Current 0%, Target: 70%+
 
-**Test Execution:**
-
-- Total test cases: TBD (target: 200+ including E2E)
-- Pass rate: Target 95%+
-- Execution time: Target < 10 minutes for full suite
-
-**Defect Metrics:**
-
-- Defects found per sprint
-- Defects by severity (P0/P1/P2/P3)
-- Defect resolution time
-- Defect leakage to production (target: 0 critical bugs)
-
-**CI/CD Metrics:**
-
-- Build success rate: Target 90%+
-- Average build time: Target < 15 minutes
-- Test failure rate: Track trends
-
-**Reporting Cadence:**
-
-- Daily: Test execution status (automated email)
-- Weekly: Bug triage meeting with metrics review
-- Sprint end: Comprehensive test summary report
-- Release: Quality gate checklist and sign-off
-
 ---
-
-## 10. Test Schedule
-
-### 10.1 Immediate Priorities (Sprint 1-2)
-
-**Week 1-2: Foundation**
-
-- ❗ Remove `-DskipTests` from CI/CD pipeline
-- ❗ Set up frontend testing framework (Jest + React Testing Library)
-- ❗ Write missing backend repository tests (6+ test files)
-- ❗ Test `PriceCorrectionJob` scheduled job
-
-**Week 3-4: Frontend Coverage**
-
-- Write unit tests for critical components:
-  - `CartSidebar.tsx`
-  - `ProductCard.tsx`
-  - `StationDialog.tsx`
-- Test API routes in `frontend/app/api`
-
-### 10.2 Short-Term (Sprint 3-4)
-
-**Week 5-6: Integration Tests**
-
-- Write backend integration tests for:
-  - Authentication flow (OAuth → JWT → Cookie)
-  - Sales transaction flow (end-to-end)
-  - Multi-tenancy isolation
-- Set up MSW for frontend API mocking
-
-**Week 7-8: E2E Framework**
-
-- Set up Playwright
-- Write 5 critical E2E tests:
-  1. User onboarding flow
-  2. POS sales transaction
-  3. Inventory management (add/remove stock)
-  4. Admin station creation
-  5. Dynamic pricing verification
-
-### 10.3 Medium-Term (Sprint 5-8)
-
-**Performance Testing:**
-
-- Set up JMeter/Gatling
-- Create load test scenarios
-- Establish performance baselines
-
-**Security Testing:**
-
-- OWASP ZAP scan
-- Dependency vulnerability audit
-- Penetration testing (if budget allows)
-
-**Test Automation Maturity:**
-
-- Achieve 80% backend, 70% frontend coverage
-- Integrate coverage reporting in CI/CD
-- Set up quality gates (coverage thresholds)
-
-### 10.4 Ongoing Activities
-
-**Continuous:**
-
-- Write tests for all new features (as part of DoD)
-- Regression testing before each release
-- Monitor test execution metrics
-- Update test documentation
-
-**Monthly:**
-
-- Review and update test plan
-- Conduct exploratory testing sessions
-- Security and dependency scans
-
----
-
-## 11. Tools and Technologies
-
-### 11.1 Testing Tools
-
-**Backend Testing:**
-
-- **Framework:** JUnit 5
-- **Mocking:** Mockito
-- **Spring Test:** `@SpringBootTest`, `@WebMvcTest`, `@DataJpaTest`
-- **Database:** H2 (in-memory for tests)
-- **Coverage:** JaCoCo
-- **Performance:** JMeter or Gatling
-
-**Frontend Testing:**
-
-- **Framework:** Jest or Vitest
-- **Component Testing:** React Testing Library
-- **E2E:** Playwright or Cypress
-- **Mocking:** MSW (Mock Service Worker)
-- **Coverage:** Istanbul/NYC
-- **Visual Regression:** Percy or Chromatic (optional)
-
-**API Testing:**
-
-- **Manual:** Postman (already in MCP tools)
-- **Automated:** REST Assured (for backend integration tests)
-
-**Security Testing:**
-
-- **OWASP ZAP** - automated security scans
-- **Snyk** - dependency vulnerability scanning
-- **SonarQube** - code quality and security analysis (optional)
-
-**CI/CD:**
-
-- **Platform:** GitHub Actions
-- **Containers:** Docker Compose
-- **Reporting:** GitHub Actions artifacts, Allure (optional)
-
-### 11.2 Test Management
-
-**Issue Tracking:**
-
-- GitHub Issues for bug tracking
-- Labels: `bug`, `P0`, `P1`, `P2`, `P3`, `test-automation`
-
-**Test Case Management:**
-
-- Test cases in code (JUnit, Jest)
-- Manual test scenarios in GitHub Wiki or Markdown files
-- Traceability via comments in test files
-
-**Documentation:**
-
-- Test plan in repository: `docs/TEST_PLAN.md`
-- Test reports in GitHub Actions artifacts
-- Coverage reports published to GitHub Pages (optional)
-
----
-
-## 12. Success Metrics
-
-### 12.1 Quantitative Metrics
-
-**Code Coverage Targets:**
-
-- ✅ Backend Services: 80%+ (currently ~80%)
-- ❗ Backend Repositories: 70%+ (currently 0%)
-- ❗ Backend Mappers: 70%+ (currently 0%)
-- ❗ Frontend Components: 70%+ (currently 0%)
-- ❗ Frontend API Routes: 80%+ (currently 0%)
-
-**Defect Metrics:**
-
-- Zero P0 bugs in production
-- < 5 P1 bugs per release
-- Defect resolution time: P0 < 4 hours, P1 < 24 hours
-
-**Test Execution:**
-
-- 100% test execution rate before release
-- < 5% flaky test rate
-- Full suite execution < 15 minutes
-
-**CI/CD:**
-
-- 90%+ build success rate
-- All PRs require passing tests
-- Zero manual test gate bypasses
-
-### 12.2 Qualitative Metrics
-
-**Team Satisfaction:**
-
-- Developers confident in test coverage
-- QA team has adequate tools and time
-- Stakeholders satisfied with quality
-
-**Process Maturity:**
-
-- TDD adopted by majority of team
-- Test-first mindset in planning
-- Continuous improvement of test practices
-
----
-
-## 13. Continuous Improvement
-
-### 13.1 Retrospectives
-
-**Sprint Retrospectives:**
-
-- Review test metrics and trends
-- Identify testing bottlenecks
-- Celebrate wins (bugs caught early, etc.)
-
-**Release Retrospectives:**
-
-- Analyze production issues
-- Review test effectiveness
-- Update test plan based on lessons learned
-
-### 13.2 Test Strategy Evolution
-
-**Quarterly Reviews:**
-
-- Assess test coverage gaps
-- Evaluate new testing tools/technologies
-- Update test strategy for emerging risks
-
-**Investment Areas:**
-
-- AI-assisted test generation (GitHub Copilot for tests)
-- Visual regression testing
-- Chaos engineering for resilience testing
-- Accessibility testing automation
-
----
-
-## Appendix A: Test Case Template
-
-```markdown
-### Test Case: TC-XXX
-
-**Title:** [Brief description]
-
-**Priority:** P0 / P1 / P2 / P3
-
-**Type:** Unit / Integration / E2E / Performance / Security
-
-**Preconditions:**
-
-- [Required state/data before test]
-
-**Test Steps:**
-
-1. [Action]
-2. [Action]
-3. [Action]
-
-**Expected Result:**
-
-- [What should happen]
-
-**Actual Result:**
-
-- [What actually happened - filled during execution]
-
-**Status:** Pass / Fail / Blocked / Skipped
-
-**Notes:**
-
-- [Any additional information]
-```
-
----
-
-## Appendix B: Bug Report Template
-
-```markdown
-### Bug Report: BUG-XXX
-
-**Title:** [Brief description]
-
-**Severity:** P0 / P1 / P2 / P3
-
-**Environment:** Local / Staging / Production
-
-**Steps to Reproduce:**
-
-1. [Action]
-2. [Action]
-3. [Action]
-
-**Expected Behavior:**
-
-- [What should happen]
-
-**Actual Behavior:**
-
-- [What actually happened]
-
-**Screenshots/Logs:**
-
-- [Attach evidence]
-
-**Impact:**
-
-- [Business/user impact]
-
-**Suggested Fix:**
-
-- [If known]
-```
-
----
-
-## Document Approval
-
-| Role          | Name   | Signature  | Date     |
-| ------------- | ------ | ---------- | -------- |
-| QA Lead       | [Name] | **\_\_\_** | **\_\_** |
-| Tech Lead     | [Name] | **\_\_\_** | **\_\_** |
-| Product Owner | [Name] | **\_\_\_** | **\_\_** |
-| DevOps Lead   | [Name] | **\_\_\_** | **\_\_** |
-
----
-
-**End of Test Plan Document**
