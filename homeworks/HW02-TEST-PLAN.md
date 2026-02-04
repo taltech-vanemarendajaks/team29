@@ -12,7 +12,7 @@
 
 ## Testing levels (e.g. unit, integration, system)
 ### Unit Testing:
-1. Focus on individual services such (e.g. AuthServiceTest, BarStationTest, and CategoryServiceTest).
+Focus on individual services such (e.g. AuthServiceTest, BarStationTest, and CategoryServiceTest).
 
 #### UI testing
 - Utility functions tests
@@ -123,45 +123,44 @@
 Examples of in-scope features:
 **Backend API Endpoints (28 total):**
 
-- ✅ Authentication (`/auth/login/success`, `/auth/logout`)
-- ✅ Account management (`/api/account`, `/api/account/onboarding`)
-- ✅ Organizations (CRUD operations)
-- ✅ Categories (CRUD operations)
-- ✅ Products (CRUD operations)
-- ✅ Inventory (stock operations, history, statistics)
-- ✅ Bar Stations (CRUD, user assignment)
-- ✅ Sales (transaction processing)
-- ✅ Users (listing)
+- Authentication (`/auth/login/success`, `/auth/logout`)
+- Account management (`/api/account`, `/api/account/onboarding`)
+- Organizations (CRUD operations)
+- Categories (CRUD operations)
+- Products (CRUD operations)
+- Inventory (stock operations, history, statistics)
+- Bar Stations (CRUD, user assignment)
+- Sales (transaction processing)
+- Users (listing)
 
 **Frontend Pages (8 total):**
 
-- ✅ Login page (`/login`)
-- ✅ Onboarding page (`/onboarding`)
-- ✅ Dashboard (`/dashboard`)
-- ✅ Inventory management (`/inventory`)
-- ✅ POS station management (`/pos`)
-- ✅ POS interface (`/pos/[stationId]`)
-- ✅ Client display (`/client`)
+- Login page (`/login`)
+- Onboarding page (`/onboarding`)
+- Dashboard (`/dashboard`)
+- Inventory management (`/inventory`)
+- POS station management (`/pos`)
+- POS interface (`/pos/[stationId]`)
+- Client display (`/client`)
 
 **Business Logic:**
 
-- ✅ Dynamic pricing algorithm
-- ✅ Inventory transaction auditing
-- ✅ Multi-tenancy isolation
-- ✅ Role-based permissions
-- ✅ OAuth2 + JWT authentication
+- Dynamic pricing algorithm
+- Inventory transaction auditing
+- Multi-tenancy isolation
+- Role-based permissions
+- OAuth2 + JWT authentication
 
 **Database:**
 
-- ✅ Liquibase migrations
-- ✅ Entity relationships and constraints
-- ✅ Transaction integrity
-- ✅ Data validation (e.g., quantity >= 0)
+- Liquibase migrations
+- Entity relationships and constraints
+- Transaction integrity
+- Data validation (e.g., quantity >= 0)
 
 ## Out of Scope:
 - User acceptance testing - no real users to test with, team members will perform acceptance-style testing internally instead.
 - Testing on mobile devices
-
 
 ## Test approach
 
