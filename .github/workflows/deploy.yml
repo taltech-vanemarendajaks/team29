@@ -45,7 +45,7 @@ jobs:
           host: ${{ secrets.DEPLOYMENT_VM_HOST }}
           username: ${{ secrets.DEPLOYMENT_VM_USER }}
           key: ${{ secrets.DEPLOYMENT_SSH_PRIVATE_KEY }}
-          source: "../../docker-compose.yaml"
+          source: "docker-compose.yaml"
           target: "/home/${{ secrets.DEPLOYMENT_VM_USER }}/borsibaar/"
 
       # --------------------------
