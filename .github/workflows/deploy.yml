@@ -22,19 +22,19 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build backend image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/backend-tiim29:latest ./backend
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-backend:latest ./backend
 
       - name: Push backend image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/backend-tiim29:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-backend:latest
 
       # --------------------------
       # Build & Push Frontend Image
       # --------------------------
       - name: Build frontend image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/frontend-tiim29:latest ./frontend
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest ./frontend
 
       - name: Push frontend image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/frontend-tiim29:latest
+        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest
 
       # --------------------------
       # Deploy to Server
@@ -47,8 +47,8 @@ jobs:
           key: ${{ secrets.DEPLOYMENT_SSH_PRIVATE_KEY }}
           port: ${{ secrets.DEPLOYMENT_VM_PORT }}
           script: |
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/backend-tiim29:latest
-            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/frontend-tiim29:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-backend:latest
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest
             cd /home/${{ secrets.DEPLOYMENT_VM_USER }}/borsibaar
             docker compose down
             docker compose up -d
