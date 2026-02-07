@@ -17,7 +17,7 @@ RUN npm run build
 
 # Run stage (using Next.js standalone output)
 FROM node:20-alpine AS runner
-ENV NODE_ENV=dev
+ENV NODE_ENV=production
 WORKDIR /app
 
 # Copy the minimal standalone build
