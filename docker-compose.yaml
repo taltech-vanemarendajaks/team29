@@ -17,7 +17,7 @@ services:
       context: backend
       dockerfile: Dockerfile
     container_name: borsibaar-backend
-    image: borsibaar-backend:latest
+    image: ${DOCKERHUB_USERNAME}/borsibaar-backend:latest
     ports:
       - "8080:8080"
     environment:
@@ -31,7 +31,7 @@ services:
       context: frontend
       dockerfile: Dockerfile
     container_name: borsibaar-frontend
-    image: borsibaar-frontend:latest
+    image: ${DOCKERHUB_USERNAME}/borsibaar-frontend:latest
     ports:
       - "3000:3000"
     environment:
