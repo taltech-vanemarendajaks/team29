@@ -45,7 +45,7 @@ jobs:
           host: ${{ secrets.DEPLOYMENT_VM_HOST }}
           username: ${{ secrets.DEPLOYMENT_VM_USER }}
           key: ${{ secrets.DEPLOYMENT_SSH_PRIVATE_KEY }}
-          source: "docker-compose.yml"
+          source: "../../docker-compose.yaml"
           target: "/home/${{ secrets.DEPLOYMENT_VM_USER }}/borsibaar/"
 
       # --------------------------
@@ -61,6 +61,11 @@ jobs:
           script: |
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-backend:latest
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest
+            export POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            export POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            export POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            export APP_FRONTEND_URL=${{ secrets.APP_FRONTEND_URL }}
+            export NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
             cd /home/${{ secrets.DEPLOYMENT_VM_USER }}/borsibaar
             docker compose down
             docker compose up -d
