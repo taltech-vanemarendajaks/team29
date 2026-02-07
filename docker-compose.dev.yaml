@@ -1,3 +1,4 @@
+version: "3.9"
 services:
   postgres:
     image: postgres:17
@@ -10,33 +11,24 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
 
   backend:
-    image: karmeb/borsibaar-backend:latest
+    build:
+      context: backend
+      dockerfile: Dockerfile.dev
     container_name: borsibaar-backend
+    command: ./mvnw spring-boot:run
+    volumes:
+      - ./backend:/app
+      - ~/.m2:/root/.m2
     ports:
       - "8080:8080"
     env_file:
       - .env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
-      APP_FRONTEND_URL: ${APP_FRONTEND_URL}
     depends_on:
       - postgres
-    restart: unless-stopped
-
-  frontend:
-    image: karmeb/borsibaar-frontend:latest
-    container_name: borsibaar-frontend
-    ports:
-      - "3000:3000"
-    environment:
-      # Server-side: Use Docker network for internal communication
-      BACKEND_URL: http://backend:8080
-    restart: unless-stopped
-    depends_on:
-      - backend
 
 volumes:
   postgres_data:

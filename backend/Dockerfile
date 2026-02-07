@@ -1,4 +1,4 @@
-FROM eclipse-temurin:21-jdk AS build
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copy the pre-built JAR from the target directory
