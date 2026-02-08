@@ -31,7 +31,11 @@ jobs:
       # Build & Push Frontend Image
       # --------------------------
       - name: Build frontend image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest ./frontend
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} \
+            -t ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest \
+            ./backend
 
       - name: Push frontend image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest
