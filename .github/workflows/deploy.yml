@@ -44,7 +44,7 @@ jobs:
         run: |
           docker build \
             --build-arg NEXT_PUBLIC_BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} \
-            --build-arg BACKEND_URL=${{ secrets.NEXT_PUBLIC_BACKEND_URL }} \
+            --build-arg BACKEND_URL=http://backend:8080 \
             -t ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest \
             ./frontend
 
