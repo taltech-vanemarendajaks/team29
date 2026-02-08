@@ -72,6 +72,7 @@ jobs:
             export JWT_SECRET=${{ secrets.JWT_SECRET }}
             export GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
             export GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+            export APP_CORS_ALLOWED_ORIGINS=${{ secrets.APP_FRONTEND_URL }}
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-backend:latest
             docker pull ${{ secrets.DOCKERHUB_USERNAME }}/borsibaar-frontend:latest
             cd /home/${{ secrets.DEPLOYMENT_VM_USER }}/borsibaar
