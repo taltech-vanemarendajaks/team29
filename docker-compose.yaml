@@ -13,9 +13,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile
     container_name: borsibaar-backend
     image: ${DOCKERHUB_USERNAME}/borsibaar-backend:latest
     ports:
@@ -30,9 +27,6 @@ services:
       - postgres
 
   frontend:
-    build:
-      context: frontend
-      dockerfile: Dockerfile
     container_name: borsibaar-frontend
     image: ${DOCKERHUB_USERNAME}/borsibaar-frontend:latest
     ports:
