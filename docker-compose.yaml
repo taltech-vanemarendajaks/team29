@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   postgres:
     image: postgres:17
@@ -13,22 +12,30 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   backend:
-    build:
-      context: backend
-      dockerfile: Dockerfile.dev
     container_name: borsibaar-backend
-    command: ./mvnw spring-boot:run
-    volumes:
-      - ./backend:/app
-      - ~/.m2:/root/.m2
+    image: ${DOCKERHUB_USERNAME}/borsibaar-backend:latest
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      APP_FRONTEND_URL: ${APP_FRONTEND_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
     depends_on:
       - postgres
+
+  frontend:
+    container_name: borsibaar-frontend
+    image: ${DOCKERHUB_USERNAME}/borsibaar-frontend:latest
+    ports:
+      - "3000:3000"
+    environment:
+      # Server-side: Use Docker network for internal communication
+      #NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL}
+      BACKEND_URL: http://backend:8080
 
 volumes:
   postgres_data:
