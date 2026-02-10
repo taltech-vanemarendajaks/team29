@@ -2,7 +2,7 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ "hw03-attempt" ]
+    branches: [ "development" ]
 
 jobs:
   build-and-deploy:
